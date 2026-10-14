@@ -19,6 +19,21 @@
 - 검색과 bge-m3 임베딩 기반 의미 검색·비슷한 글 추천
 - 블로그 관리 화면과 서비스 관리자(신고·정지)
 
+## 구성
+
+```mermaid
+flowchart LR
+  U["브라우저"] -->|https| N["학교 nginx<br/>now-log.java21.net"]
+  N --> A["now-log 앱<br/>Spring Boot + React 빌드"]
+  A --> P[("PostgreSQL 17 + pgvector<br/>회원·글·임베딩")]
+  A --> R[("Redis<br/>로그인 토큰·캐시·시도 제한")]
+  A --> O["Ollama<br/>bge-m3 임베딩"]
+```
+
+- React 빌드 결과를 jar 안 `static/`에 넣어 **서버 하나**로 배포합니다. 화면은 `/@주소/...`, API는 `/api/...`입니다.
+- 네 개 모두 도커 컨테이너이고, 서버 밖으로는 앱 포트만 엽니다.
+- **배포**: main에 병합하면 GitHub Actions가 테스트(Testcontainers) → 도커 이미지 빌드 → SSH로 서버에 보내 컨테이너를 바꿉니다.
+
 ## 기술
 
 - **백엔드** Java 21, Spring Boot 4.1(Web MVC, Security, Data JPA, Flyway), Maven
@@ -27,8 +42,29 @@
 - **테스트** JUnit 5, MockMvc, Testcontainers, ArchUnit, Vitest
 - **배포** Docker, GitHub Actions
 
+## 설계에서 신경 쓴 점
+
+- **볼 수 없는 글은 로그인 여부와 상관없이 404.** 비공개 글이 "있다는 사실"도 드러내지 않고, 권한은 모두 서버에서 검사합니다.
+- **블로그 주소는 `/@주소` 경로**이고, API는 `X-Blog-Address` 헤더로 어느 블로그인지 정합니다.
+- **임베딩은 글 저장이 커밋된 뒤 비동기로.** `@TransactionalEventListener` + `@Async`라서 저장 응답이 모델 계산을 기다리지 않고, 저장이 롤백되면 임베딩도 만들지 않습니다.
+- **인기 글**은 최근 1시간의 조회×1 + 공감×3 + 댓글×5로 매기고, 계산 결과는 Redis에 5분 캐시합니다.
+- **로그인**은 HttpOnly 쿠키에 담은 JWT. Refresh 토큰은 Redis에 두고 로그아웃하면 지웁니다.
+
 ## 진행 방식
 
-명세 → 계획 → 작업 목록 순서의 Spec Kit 흐름으로 설계하고, 작업 목록의 스텝 단위로 구현했습니다. 스텝마다 그 스텝에서 처음 쓴 개념을 처음부터 정리한 학습 문서를 남겼습니다([learning](https://github.com/blog-hjiwon203/blog-docs/tree/main/specs/001-tistory-blog/learning)).
+```mermaid
+flowchart LR
+  S["명세<br/>spec.md"] --> PL["계획<br/>plan.md · research.md"]
+  PL --> T["작업 목록<br/>tasks.md 스텝"]
+  T --> B["스텝 N 구현<br/>브랜치 · 커밋마다 작업 번호"]
+  B --> D["명세와 다른 점은<br/>blog-docs 먼저 고침"]
+  D --> PR["PR · 테스트 · 배포"]
+  PR --> L["학습 문서<br/>개념 · 스텝 노트"]
+  L -.다음 스텝.-> T
+```
+
+- [Spec Kit](https://github.com/github/spec-kit) 흐름으로 명세 → 계획 → 작업 목록을 먼저 만들고, 작업 목록의 **스텝 단위**로 구현했습니다.
+- 문서(blog-docs)와 코드(now-log)를 저장소로 나눴습니다. 구현하다 명세와 달라져야 하면 코드보다 **문서를 먼저** 고칩니다.
+- 스텝마다 그 스텝에서 처음 쓴 개념을 처음부터 정리한 [학습 문서](https://github.com/blog-hjiwon203/blog-docs/tree/main/specs/001-tistory-blog/learning)를 남겼습니다.
 
 처음 개발은 과제 제출용 저장소 [AIP-1/blog-basic-AIGJ_01_017-blog](https://github.com/AIP-1/blog-basic-AIGJ_01_017-blog)에서 했고, 2026-10-14에 커밋 기록째 now-log로 옮겼습니다.
