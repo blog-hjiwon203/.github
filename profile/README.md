@@ -2,7 +2,9 @@
 
 누구나 가입해 자기 블로그(`/@주소`)를 열고, 에디터로 글을 쓰고, 다른 블로그 글을 읽고 댓글·공감·구독하는 티스토리형 멀티 블로그 서비스입니다.
 
-**운영** → https://now-log.java21.net · **최신 릴리스** → [v1.0.0](https://github.com/blog-hjiwon203/now-log/releases/tag/v1.0.0)
+**운영** → https://now-log.java21.net · **최신 릴리스** → [v1.1.0](https://github.com/blog-hjiwon203/now-log/releases/tag/v1.1.0)
+
+> 2026-10-08 ~ 2026-10-22 개발을 마무리했습니다. 작업 163개를 모두 끝냈고, 운영 사이트는 계속 돌아갑니다. 남은 일은 [now-log README](https://github.com/blog-hjiwon203/now-log#남은-일)에 있습니다.
 
 | 홈 | 블로그 첫 화면 |
 | --- | --- |
@@ -77,6 +79,7 @@ flowchart LR
 
 | 버전 | 날짜 | 내용 |
 | --- | --- | --- |
+| v1.1.0 | 2026-10-22 | 화면 다듬기, SonarQube 프론트 지적 정리 |
 | v1.0.0 | 2026-10-16 | 앱 두 대 무중단 배포, SonarQube |
 | v0.4.0 | 2026-10-14 | 의미 검색, PostgreSQL + pgvector 하나로 |
 | v0.3.0 | 2026-10-12 | 첫 운영 배포, 블로그 주소를 `/@주소`로 |
